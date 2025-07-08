@@ -1,3 +1,102 @@
+function createQuota() {
+    let quota = Infinity;
+
+    if (savedata.useNonsenseWords) {
+        if (savedata.nonsenseWordLength % 2) quota = Math.min(quota, ((21 ** (Math.floor(savedata.nonsenseWordLength / 2) + 1)) * (5 ** Math.floor(savedata.nonsenseWordLength / 2))));
+        else quota = Math.min(quota, (21 ** (savedata.nonsenseWordLength / 2)) * (5 ** (savedata.nonsenseWordLength / 2)));
+    }
+    if (savedata.useMeaningfulWords) {
+        if (savedata.meaningfulWordNouns) quota = Math.min(quota, meaningfulWords.nouns.length);
+        if (savedata.meaningfulWordAdjectives) quota = Math.min(quota, meaningfulWords.adjectives.length);
+    }   
+    if (savedata.useEmoji) quota = Math.min(quota, emoji.length);
+    
+    return quota;
+}
+
+function createStimuli(numberOfStimuli) {
+    const quota = createQuota();
+    
+    const uniqueWords = {
+        meaningful: {
+            nouns: new Set(),
+            adjectives: new Set()
+        },
+        nonsense: new Set()
+    }
+    const uniqueEmoji = new Set();
+
+    const stimulusTypes = new Set();
+    
+    if (savedata.useNonsenseWords) stimulusTypes.add('nonsenseWords');
+    if (savedata.useMeaningfulWords) stimulusTypes.add('meaningfulWords');
+    if (savedata.useEmoji) stimulusTypes.add('emoji');
+    if (!stimulusTypes.size) stimulusTypes.add(savedata.defaultStimulusType);
+
+    const stimuliCreated = [];
+
+    const partsOfSpeech = new Set();
+    
+    if (savedata.meaningfulWordNouns) partsOfSpeech.add('nouns');
+    if (savedata.meaningfulWordAdjectives) partsOfSpeech.add('adjectives');
+    if (!partsOfSpeech.size) partsOfSpeech.add(savedata.defaultPartOfSpeech);
+
+    for (; numberOfStimuli > 0 && stimulusTypes.size; numberOfStimuli -= 1) {
+        const randomStimulusType = Array.from(stimulusTypes)[Math.floor(Math.random() * stimulusTypes.size)];
+
+        if (randomStimulusType == 'nonsenseWords') {      
+            const vowels = ['A', 'E', 'I', 'O', 'U'], consonants = ['B', 'C', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R', 'S', 'T', 'V', 'W', 'X', 'Y', 'Z'];
+            
+            for (string = ''; string.length < savedata.nonsenseWordLength;) {
+                if ((string.length + 1) % 2) string += consonants[Math.floor(Math.random() * 21)];
+                else string += vowels[Math.floor(Math.random() * 5)];
+        
+                if (string.length == savedata.nonsenseWordLength) {
+                    if (uniqueWords.nonsense.has(string)) string = '';
+                    else {
+                        stimuliCreated.push(string);
+                        uniqueWords.nonsense.add(string);
+                    }
+                }
+            }
+
+            if (uniqueWords.nonsense.size >= quota) stimulusTypes.delete(randomStimulusType);     
+        } else if (randomStimulusType == 'meaningfulWords') {
+            const randomPartOfSpeech = Array.from(partsOfSpeech)[Math.floor(Math.random() * partsOfSpeech.size)]
+
+            if (randomPartOfSpeech) {
+                let randomMeaningfulWord;
+
+                do {
+                    if (uniqueWords.meaningful[randomPartOfSpeech].size >= meaningfulWords[randomPartOfSpeech].length) uniqueWords.meaningful[randomPartOfSpeech].nouns = new Set();
+    
+                    randomMeaningfulWord = meaningfulWords[randomPartOfSpeech][Math.floor(Math.random() * meaningfulWords[randomPartOfSpeech].length)];         
+                } while (uniqueWords.meaningful[randomPartOfSpeech].has(randomMeaningfulWord));
+    
+                stimuliCreated.push(randomMeaningfulWord);
+                uniqueWords.meaningful[randomPartOfSpeech].add(randomMeaningfulWord);
+            } else stimulusTypes.delete(randomStimulusType);
+
+            if (uniqueWords.meaningful[randomPartOfSpeech].size >= quota) partsOfSpeech.delete(randomPartOfSpeech);
+        } else if (randomStimulusType == 'emoji') {
+            let randomEmoji;
+
+            do {
+                if (uniqueEmoji.size >= emoji.length) uniqueEmoji = new Set();
+                
+                randomEmoji = emoji[Math.floor(Math.random() * emoji.length)];           
+            } while (uniqueEmoji.has(randomEmoji));
+            
+            stimuliCreated.push(randomEmoji);
+            uniqueEmoji.add(randomEmoji);
+            
+            if (uniqueEmoji.size >= quota) stimulusTypes.delete(randomStimulusType);
+        } else break;
+    }
+
+    return stimuliCreated
+}
+
 function coinFlip() {
     return Math.random() > 0.5;
 }
@@ -23,58 +122,18 @@ function shuffle(array) {
     return array;
 }
 
-function metaSubstitution(choosenPair, relations, negations) {
-
-    // Generate substitution string
-    let substitution;
-    const [a, b] = [
-            ...choosenPair.picked[0]
-            .matchAll(/<span class="subject">(.*?)<\/span>/g)
-        ]
-        .map(m => m[1]);
-    if (!negations[0] && !negations[1] && relations[0] === relations[1])
-        substitution = `$1 same as <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to `;
-    if (!negations[0] && negations[1] && relations[0] === relations[1])
-        substitution = `$1 opposite of <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to `;
-    if (negations[0] && !negations[1] && relations[0] === relations[1])
-        if (savedata.enableNegation)
-            substitution = `$1 <span class="is-negated">same as</span> <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to `;
-        else
-            substitution = `$1 opposite of <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to `;
-    if (negations[0] && negations[1] && relations[0] === relations[1])
-        if (savedata.enableNegation)
-            substitution = `$1 <span class="is-negated">opposite of</span> <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to `;
-        else
-            substitution = `$1 same as <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to `;
-
-    if (!negations[0] && !negations[1] && relations[0] !== relations[1])
-        if (savedata.enableNegation)
-            substitution = `$1 <span class="is-negated">same as</span> <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to `;
-        else
-            substitution = `$1 opposite of <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to `;
-    if (!negations[0] && negations[1] && relations[0] !== relations[1])
-        if (savedata.enableNegation)
-            substitution = `$1 <span class="is-negated">opposite of</span> <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to `;
-        else
-            substitution = `$1 same as <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to `;
-    if (negations[0] && !negations[1] && relations[0] !== relations[1])
-        substitution = `$1 same as <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to `;
-    if (negations[0] && negations[1] && relations[0] !== relations[1])
-        substitution = `$1 opposite of <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to `;
-
-    return substitution;
-}
-
 function createSameOpposite(length) {
     length++;
+    
+    const words = createStimuli(length);
 
+    const category = "Distinction";
     let buckets;
     let isValid;
     let premises;
     let conclusion;
     do {
-        let rnd = Math.floor(Math.random() * symbols.length);
-        let first = symbols.splice(rnd, 1)
+        let first = words[0];
         let prev = first;
         let curr;
 
@@ -83,9 +142,8 @@ function createSameOpposite(length) {
 
         premises = [];
 
-        for (let i = 0; i < length - 1; i++) {
-            let rnd = Math.floor(Math.random() * symbols.length);
-            curr = symbols.splice(rnd, 1);
+        for (let i = 1; i < words.length; i++) {
+            curr = words[i];
 
             if (coinFlip()) {
                 const ps = [
@@ -126,11 +184,42 @@ function createSameOpposite(length) {
                     p.match(/is (?:<span class="is-negated">)?(.*) (?:as|of)/)[1]
                 );
         
-                const substitution = metaSubstitution(choosenPair, relations, negations);
+                // Generate substitution string
+                let substitution;
+                const [a, b] = [
+                        ...choosenPair.picked[0]
+                        .matchAll(/<span class="subject">(.*?)<\/span>/g)
+                    ]
+                    .map(m => m[1]);
+                if (!negations[0] && !negations[1] && relations[0] === relations[1]) {
+                    substitution = `$1 same as <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to`;
+                } // Tested
+                if (!negations[0] && negations[1] && relations[0] === relations[1]) {
+                    substitution = `$1 opposite of <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to`;
+                } // Tested
+                if (negations[0] && !negations[1] && relations[0] === relations[1]) {
+                    substitution = `$1 <span class="is-negated">same as</span> <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to`;
+                } // Tested
+                if (negations[0] && negations[1] && relations[0] === relations[1]) {
+                    substitution = `$1 <span class="is-negated">opposite of</span> <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to`;
+                } // Tested
+
+                if (!negations[0] && !negations[1] && relations[0] !== relations[1]) {
+                    substitution = `$1 <span class="is-negated">same as</span> <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to`;
+                } // Tested
+                if (!negations[0] && negations[1] && relations[0] !== relations[1]) {
+                    substitution = `$1 <span class="is-negated">opposite of</span> <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to`;
+                } // Tested
+                if (negations[0] && !negations[1] && relations[0] !== relations[1]) {
+                    substitution = `$1 same as <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to`;
+                } // Tested
+                if (negations[0] && negations[1] && relations[0] !== relations[1]) {
+                    substitution = `$1 opposite of <span class="is-meta">(<span class="subject">${a}</span> to <span class="subject">${b}</span>)</span> to`;
+                } // Tested
 
                 // Replace relation with meta-relation via substitution string
                 const metaPremise = choosenPair.picked[1]
-                    .replace(/(is) (.*)(?=<span class="subject">)/, substitution);
+                    .replace(/(is) (.*) (as|of)/, substitution);
 
                 // Push premise and its corresponding meta-premise
                 premises.push(choosenPair.picked[0], metaPremise);
@@ -164,8 +253,7 @@ function createSameOpposite(length) {
     shuffle(premises);
 
     return {
-        label: "distinction",
-        category: "Distinction",
+        category,
         createdAt: new Date().getTime(),
         buckets,
         isValid,
@@ -177,23 +265,20 @@ function createSameOpposite(length) {
 function createMoreLess(length) {
     length++;
 
+    const category = "Comparison";
     let bucket;
     let isValid;
     let premises;
     let conclusion;
     do {
-        let seen = [];
-        bucket = Array(length).fill(0)
-            .map(() =>
-                symbols.splice(Math.floor(Math.random() * symbols.length), 1)
-            );
+        bucket = createStimuli(length)
 
         let sign = [-1, 1][Math.floor(Math.random() * 2)];
 
         premises = [];
         let next;
 
-        for (let i = 0; i < length - 1; i++) {
+        for (let i = 0; i < bucket.length - 1; i++) {
             let curr = bucket[i];
             next = bucket[i + 1];
 
@@ -236,35 +321,6 @@ function createMoreLess(length) {
             }
         }
 
-        if (savedata.enableMeta) {
-
-            // Randomly choose a number of meta-relations
-            const numOfMetaRelations = 1 + Math.floor(Math.random() * Math.floor((length - 1) / 2));
-            let _premises = pickUniqueItems(premises, numOfMetaRelations * 2);
-            premises = [ ..._premises.remaining ];
-
-            while (_premises.picked.length) {
-
-                const choosenPair = pickUniqueItems(_premises.picked, 2);
-                const negations = choosenPair.picked.map(p => /is-negated/.test(p));
-                const relations = choosenPair.picked.map(p =>
-                    p.match(/is (?:<span class="is-negated">)*(.*?)(?:<\/span>)* /)[1]
-                );
-        
-                const substitution = metaSubstitution(choosenPair, relations, negations);
-
-                // Replace relation with meta-relation via substitution string
-                const metaPremise = choosenPair.picked[1]
-                    .replace(/(is) (.*)(?=<span class="subject">)/, substitution);
-
-                // Push premise and its corresponding meta-premise
-                premises.push(choosenPair.picked[0], metaPremise);
-
-                // Update _premises so that it doesn't end up in an infinite loop
-                _premises = { picked: choosenPair.remaining };
-            }
-        }
-
         let a = Math.floor(Math.random() * bucket.length);
         let b = Math.floor(Math.random() * bucket.length);
         while (a === b) {
@@ -294,8 +350,7 @@ function createMoreLess(length) {
     shuffle(premises);
 
     return {
-        label: "comparison",
-        category: "Comparison",
+        category,
         createdAt: new Date().getTime(),
         bucket,
         isValid,
@@ -307,23 +362,20 @@ function createMoreLess(length) {
 function createBeforeAfter(length) {
     length++;
 
+    const category = "Temporal";
     let bucket;
     let isValid;
     let premises;
     let conclusion;
     do {
-        let seen = [];
-        bucket = Array(length).fill(0)
-            .map(() =>
-                symbols.splice(Math.floor(Math.random() * symbols.length), 1)
-            );
+        bucket = createStimuli(length);
 
         let sign = [-1, 1][Math.floor(Math.random() * 2)];
 
         premises = [];
         let next;
 
-        for (let i = 0; i < length - 1; i++) {
+        for (let i = 0; i < bucket.length - 1; i++) {
             let curr = bucket[i];
             next = bucket[i + 1];
             if (coinFlip()) {
@@ -365,35 +417,6 @@ function createBeforeAfter(length) {
             }
         }
 
-        if (savedata.enableMeta) {
-
-            // Randomly choose a number of meta-relations
-            const numOfMetaRelations = 1 + Math.floor(Math.random() * Math.floor((length - 1) / 2));
-            let _premises = pickUniqueItems(premises, numOfMetaRelations * 2);
-            premises = [ ..._premises.remaining ];
-
-            while (_premises.picked.length) {
-
-                const choosenPair = pickUniqueItems(_premises.picked, 2);
-                const negations = choosenPair.picked.map(p => /is-negated/.test(p));
-                const relations = choosenPair.picked.map(p =>
-                    p.match(/is (?:<span class="is-negated">)*(.*?)(?:<\/span>)* /)[1]
-                );
-
-                const substitution = metaSubstitution(choosenPair, relations, negations);
-
-                // Replace relation with meta-relation via substitution string
-                const metaPremise = choosenPair.picked[1]
-                    .replace(/(is) (.*)(?=<span class="subject">)/, substitution);
-
-                // Push premise and its corresponding meta-premise
-                premises.push(choosenPair.picked[0], metaPremise);
-
-                // Update _premises so that it doesn't end up in an infinite loop
-                _premises = { picked: choosenPair.remaining };
-            }
-        }
-
         let a = Math.floor(Math.random() * bucket.length);
         let b = Math.floor(Math.random() * bucket.length);
         while (a === b) {
@@ -423,8 +446,7 @@ function createBeforeAfter(length) {
     shuffle(premises);
 
     return {
-        label: "temporal",
-        category: "Temporal",
+        category,
         createdAt: new Date().getTime(),
         bucket,
         isValid,
@@ -434,43 +456,32 @@ function createBeforeAfter(length) {
 }
 
 function createBinaryQuestion(length) {
+    const operands = [
+        "a&&b",                 // and
+        "!(a&&b)",              // nand
+        "a||b",                 // or
+        "!(a||b)",              // nor
+        "!(a&&b)&&(a||b)",      // xor
+        "!(!(a&&b)&&(a||b))"    // xnor
+    ];
 
-    const operands = [];
-    const operandNames = [];
-    const operandTemplates = [];
+    const operandNames = [
+        "AND",
+        "NAND",
+        "OR",
+        "NOR",
+        "XOR",
+        "XNOR"
+    ];
 
-    if (savedata.enableAnd) {
-        operands.push("a&&b");
-        operandNames.push("AND");
-        operandTemplates.push('$a <div class="is-connector">and</div> $b');
-    }
-    if (savedata.enableNand) {
-        operands.push("!(a&&b)");
-        operandNames.push("NAND");
-        operandTemplates.push('$a <div class="is-connector">and</div> $b <div class="is-connector">are not both true</div>');
-    }
-    if (savedata.enableOr) {
-        operands.push("a||b");
-        operandNames.push("OR");
-        operandTemplates.push('$a <div class="is-connector">or</div> $b');
-    }
-    if (savedata.enableNor) {
-        operands.push("!(a||b)");
-        operandNames.push("NOR");
-        operandTemplates.push('$a <div class="is-connector">and</div> $b <div class="is-connector">are both false</div>');
-    }
-    if (savedata.enableXor) {
-        operands.push("!(a&&b)&&(a||b)");
-        operandNames.push("XOR");
-        operandTemplates.push('$a <div class="is-connector">differs from</div> $b');
-    }
-    if (savedata.enableXnor) {
-        operands.push("!(!(a&&b)&&(a||b))");
-        operandNames.push("XNOR");
-        operandTemplates.push('$a <div class="is-connector">is equal to</div> $b');
-    }
-
-    if (!operands.length) return;
+    const operandTemplates = [
+        '$a <div class="is-connector">and</div> $b',
+        '<div class="is-connector"></div> $a <div class="is-connector">and</div> $b <div class="is-connector">are true</div>',
+        '$a <div class="is-connector">or</div> $b',
+        '<div class="is-connector">Neither</div> $a <div class="is-connector">nor</div> $b',
+        '<div class="is-connector">Either</div> $a <div class="is-connector">or</div> $b',
+        '<div class="is-connector">Both</div> $a <div class="is-connector">and</div> $b <div class="is-connector">are the same</div>'
+    ];
 
     const pool = [];
 
@@ -520,7 +531,6 @@ function createBinaryQuestion(length) {
     }
 
     return {
-        label: "binary",
         category: `Binary: ${choice.category} ${operandNames[operandIndex]} ${choice2.category}`,
         createdAt: new Date().getTime(),
         isValid,
@@ -530,38 +540,23 @@ function createBinaryQuestion(length) {
 }
 
 function createNestedBinaryQuestion(length) {
+    const humanOperands = [
+        '<span class="is-connector">(</span>à<span class="is-connector">)</span> <span class="is-connector">AND</span> <span class="is-connector">(</span>ò<span class="is-connector">)</span>',
+        '<span class="is-connector">(</span>à<span class="is-connector">)</span> <span class="is-connector">NAND</span> <span class="is-connector">(</span>ò<span class="is-connector">)</span>',
+        '<span class="is-connector">(</span>à<span class="is-connector">)</span> <span class="is-connector">OR</span> <span class="is-connector">(</span>ò<span class="is-connector">)</span>',
+        '<span class="is-connector">(</span>à<span class="is-connector">)</span> <span class="is-connector">NOR</span> <span class="is-connector">(</span>ò<span class="is-connector">)</span>',
+        '<span class="is-connector">(</span>à<span class="is-connector">)</span> <span class="is-connector">XOR</span> <span class="is-connector">(</span>ò<span class="is-connector">)</span>',
+        '<span class="is-connector">(</span>à<span class="is-connector">)</span> <span class="is-connector">XNOR</span> <span class="is-connector">(</span>ò<span class="is-connector">)</span>'
+    ];
 
-    let depth = +savedata.nestedBinaryDepth;
-
-    const humanOperands = [];
-    const evalOperands = [];
-
-    if (savedata.enableAnd) {
-        humanOperands.push('<span class="is-connector">(</span>à<span class="is-connector">)</span> <span class="is-connector">AND</span> <span class="is-connector">(</span>ò<span class="is-connector">)</span>');
-        evalOperands.push("(a)&&(b)");
-    }
-    if (savedata.enableNand) {
-        humanOperands.push('<span class="is-connector">(</span>à<span class="is-connector">)</span> <span class="is-connector">NAND</span> <span class="is-connector">(</span>ò<span class="is-connector">)</span>');
-        evalOperands.push("!((a)&&(b))");
-    }
-    if (savedata.enableOr) {
-        humanOperands.push('<span class="is-connector">(</span>à<span class="is-connector">)</span> <span class="is-connector">OR</span> <span class="is-connector">(</span>ò<span class="is-connector">)</span>');
-        evalOperands.push("(a)||(b)");
-    }
-    if (savedata.enableNor) {
-        humanOperands.push('<span class="is-connector">(</span>à<span class="is-connector">)</span> <span class="is-connector">NOR</span> <span class="is-connector">(</span>ò<span class="is-connector">)</span>');
-        evalOperands.push("!((a)||(b))");
-    }
-    if (savedata.enableXor) {
-        humanOperands.push('<span class="is-connector">(</span>à<span class="is-connector">)</span> <span class="is-connector">XOR</span> <span class="is-connector">(</span>ò<span class="is-connector">)</span>');
-        evalOperands.push("!((a)&&(b))&&((a)||(b))");
-    }
-    if (savedata.enableXnor) {
-        humanOperands.push('<span class="is-connector">(</span>à<span class="is-connector">)</span> <span class="is-connector">XNOR</span> <span class="is-connector">(</span>ò<span class="is-connector">)</span>');
-        evalOperands.push("!(!((a)&&(b))&&((a)||(b)))");
-    }
-
-    if (!humanOperands.length) return;
+    const evalOperands =[
+        "(a)&&(b)",
+        "!((a)&&(b))",
+        "(a)||(b)",
+        "!((a)||(b))",
+        "!((a)&&(b))&&((a)||(b))",
+        "!(!((a)&&(b))&&((a)||(b)))"
+    ];
 
     const pool = [];
 
@@ -580,41 +575,24 @@ function createNestedBinaryQuestion(length) {
     if (savedata.enableSyllogism)
         pool.push(createSyllogism);
 
-    let numberOfQuestions;
-    let questions;
-    if (depth < 2) {
-        numberOfQuestions = 2;
-        const a = Math.floor(length / 2);
-        const b = length % 2 > 0
-            ? a + 1
-            : a;
-        questions = [a, b]
-            .map(ab =>
-                pool[Math.floor(Math.random() * pool.length)](ab)
-            );
-        console.log("Two questions - Many premises", questions);
-    }
-    else {
-        numberOfQuestions = Math.floor(length / 2)
-        questions = Array(numberOfQuestions).fill(0)
-            .map(() =>
-                pool[Math.floor(Math.random() * pool.length)](2)
-            );
-        console.log("Many questions - Two premises", questions);
-    }
+    const halfLength = Math.floor(length / 2);
+    const questions = Array(halfLength).fill(0)
+        .map(() => pool[Math.floor(Math.random() * pool.length)](2));
 
-    depth *= 2; // Multiply by 2 because I decrement by 1 at every iteration
+    let maxDepth = +savedata.maxNestedBinaryDepth;
     let i = 0;
-    function generator() {
+    function generator(depth) {
+        const flip = Math.random() < 0.5;
+        const flip2 = Math.random() < 0.5;
         const rndIndex = Math.floor(Math.random() * humanOperands.length);
         const humanOperand = humanOperands[rndIndex];
         const evalOperand = evalOperands[rndIndex];
-        const val = (--depth> 0)
-            ? generator()
-            : (i++) % numberOfQuestions;
-        const val2 = (--depth> 0)
-            ? generator()
-            : (i++) % numberOfQuestions;
+        const val = (flip && maxDepth--> 0)
+            ? generator(++depth)
+            : (i++) % halfLength;
+        const val2 = (flip2 && maxDepth--> 0)
+            ? generator(++depth)
+            : (i++) % halfLength;
         return {
             human: humanOperand
                 .replace('à', val > - 1 ? val : val.human)
@@ -638,7 +616,6 @@ function createNestedBinaryQuestion(length) {
     const conclusion = generated.human.replaceAll(/(\d+)/g, m => questions[m].conclusion);
 
     return {
-        label: "binary",
         category: `Nested Binary: ${category}`,
         createdAt: new Date().getTime(),
         isValid,
@@ -789,48 +766,47 @@ function createSameDifferent(length) {
         isValid = isValidSame;
         if (choiceIndex < 1) {
             const cs = [
-                '<div class="analogy-conclusion-relation">is the same as</div>',
-                '<div class="analogy-conclusion-relation is-negated">is different from</div>'
+                '<div style="margin: 2px 0;">is the same as</div>',
+                '<div style="color: red; margin: 2px 0;">is the same as</div>'
             ];
-            conclusion += (coinFlip() && savedata.enableNegation)
-                ? pickUniqueItems(cs, 1).picked[0]
-                : cs[0];
+            conclusion += (!savedata.enableNegation)
+                ? cs[0]
+                : pickUniqueItems(cs, 1).picked[0];
         }
         else {
             const cs = [
-                '<div class="analogy-conclusion-relation">has the same relation as</div>',
-                '<div class="analogy-conclusion-relation is-negated">has a different relation from</div>'
+                '<div style="font-size: 14px; margin: 2px 0;">has the same relation as</div>',
+                '<div style="color: red; font-size: 14px; margin: 2px 0;">has the same relation as</div>'
             ];
-            conclusion += (coinFlip() && savedata.enableNegation)
-                ? pickUniqueItems(cs, 1).picked[0]
-                : cs[0];
+            conclusion += (!savedata.enableNegation)
+                ? cs[0]
+                : pickUniqueItems(cs, 1).picked[0];
         }
     }
     else {
         isValid = !isValidSame;
         if (choiceIndex < 1) {
             const cs = [
-                '<div class="analogy-conclusion-relation">is different from</div>',
-                '<div class="analogy-conclusion-relation is-negated">is the same as</div>'
+                '<div style="margin: 2px 0;">is different from</div>',
+                '<div style="color: red; margin: 2px 0;">is different from</div>'
             ];
-            conclusion += (coinFlip() && savedata.enableNegation)
-                ? pickUniqueItems(cs, 1).picked[0]
-                : cs[0];
+            conclusion += (!savedata.enableNegation)
+                ? cs[0]
+                : pickUniqueItems(cs, 1).picked[0];
 
         }
         else {
             const cs = [
-                '<div class="analogy-conclusion-relation">has a different relation from</div>',
-                '<div class="analogy-conclusion-relation is-negated">has the same relation as</div>',
+                '<div style="font-size: 12px; margin: 4px 0;">has a different relation from</div>',
+                '<div style="color: red; font-size: 12px; margin: 4px 0;">has a different relation from</div>',
             ];
-            conclusion += (coinFlip() && savedata.enableNegation)
-                ? pickUniqueItems(cs, 1).picked[0]
-                : cs[0];
+            conclusion += (!savedata.enableNegation)
+                ? cs[0]
+                : pickUniqueItems(cs, 1).picked[0];
         }
     }
     conclusion += `<span class="subject">${c}</span> to <span class="subject">${d}</span>`;
 
-    choice.label = "analogy";
     choice.category = "Analogy: " + subtype;
     choice.createdAt = new Date().getTime();
     choice.isValid = isValid;
@@ -854,7 +830,7 @@ function findDirection(aCoord, bCoord) {
 function createDirectionQuestion(length) {
     length++;
 
-    const words = pickUniqueItems(symbols, length).picked;
+    const words = createStimuli(length);
 
     let wordCoordMap = {};
     let premises = [];
@@ -887,7 +863,7 @@ function createDirectionQuestion(length) {
 
         conclusionDirName = findDirection(
             wordCoordMap[words[0]],
-            wordCoordMap[words[length-1]]
+            wordCoordMap[words[words.length-1]]
         );
     }
 
@@ -905,7 +881,7 @@ function createDirectionQuestion(length) {
     else {            // wrong
         isValid = false;
         let oppositeDirection = findDirection(
-            wordCoordMap[words[length-1]],
+            wordCoordMap[words[words.length-1]],
             wordCoordMap[words[0]]
         );
         const cs = [
@@ -920,7 +896,6 @@ function createDirectionQuestion(length) {
     shuffle(premises);
     
     return {
-        label: "direction",
         category: "Space Two D",
         createdAt: new Date().getTime(),
         wordCoordMap,
@@ -948,8 +923,8 @@ function findDirection3D(aCoord, bCoord) {
 function createDirectionQuestion3D(length) {
     length++;
 
-    const words = pickUniqueItems(symbols, length).picked;
-
+    const words = createStimuli(length);
+    
     let wordCoordMap = {};
     let premises = [];
     let conclusion;
@@ -979,10 +954,10 @@ function createDirectionQuestion3D(length) {
                 ? ps[0]
                 : pickUniqueItems(ps, 1).picked[0]);
         }
-
+        
         conclusionDirName = findDirection3D(
             wordCoordMap[words[0]],
-            wordCoordMap[words[length-1]]
+            wordCoordMap[words[words.length-1]]
         );
     }
 
@@ -1000,7 +975,7 @@ function createDirectionQuestion3D(length) {
     else {            // wrong
         isValid = false;
         let oppositeDirection = findDirection3D(
-            wordCoordMap[words[length-1]],
+            wordCoordMap[words[words.length-1]],
             wordCoordMap[words[0]]
         );
         const cs = [
@@ -1015,7 +990,6 @@ function createDirectionQuestion3D(length) {
     shuffle(premises);
     
     return {
-        label: "direction3D",
         category: "Space Three D",
         createdAt: new Date().getTime(),
         wordCoordMap,
@@ -1050,7 +1024,7 @@ function findDirection4D(aCoord, bCoord) {
 function createDirectionQuestion4D(length) {
     length++;
 
-    const words = pickUniqueItems(symbols, length).picked;
+    const words = createStimuli(length);
 
     let wordCoordMap = {};
     let premises = [];
@@ -1087,7 +1061,7 @@ function createDirectionQuestion4D(length) {
 
         conclusionDirName = findDirection4D(
             wordCoordMap[words[0]],
-            wordCoordMap[words[length-1]]
+            wordCoordMap[words[words.length-1]]
         );
     }
 
@@ -1105,7 +1079,7 @@ function createDirectionQuestion4D(length) {
     else {            // wrong
         isValid = false;
         let oppositeDirection = findDirection4D(
-            wordCoordMap[words[length-1]],
+            wordCoordMap[words[words.length-1]],
             wordCoordMap[words[0]]
         );
         const cs = [
@@ -1120,7 +1094,6 @@ function createDirectionQuestion4D(length) {
     shuffle(premises);
     
     return {
-        label: "direction4D",
         category: "Space Time",
         createdAt: new Date().getTime(),
         wordCoordMap,
@@ -1133,23 +1106,14 @@ function createDirectionQuestion4D(length) {
 function createSyllogism(length) {
     length++;
 
+    const category = "Syllogism";
     let bucket;
     let isValid;
     let rule;
     let premises;
     let conclusion;
     do {
-        let seen = [];
-        bucket = Array(length).fill(0)
-            .map(() => {
-                let rnd = Math.floor(Math.random() * symbols.length);
-                while (seen.includes(rnd)) {
-                    rnd = Math.floor(Math.random() * symbols.length);
-                }
-                seen.push(rnd);
-                return symbols[rnd];
-            });
-
+        bucket = createStimuli(length);
         premises = [];
 
         conclusion;
@@ -1173,7 +1137,7 @@ function createSyllogism(length) {
         }
     } while(isPremiseSimilarToConlusion(premises, conclusion));
 
-    for (let i = 3; i < length; i++) {
+    for (let i = 3; i < bucket.length; i++) {
         let rnd = Math.floor(Math.random() * (i - 1));
         let flip = coinFlip();
         let p = flip ? bucket[i] : bucket[rnd];
@@ -1184,8 +1148,7 @@ function createSyllogism(length) {
     premises = shuffle(premises);
 
     return {
-        label: 'syllogism',
-        category: "Syllogism",
+        category,
         rule,
         createdAt: new Date().getTime(),
         bucket,

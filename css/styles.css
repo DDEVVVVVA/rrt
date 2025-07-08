@@ -95,7 +95,7 @@ button:not(:disabled):hover {
 }
 
 .mb-2 {
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
 }
 
 .ffmono {
@@ -277,16 +277,15 @@ button:not(:disabled):hover {
 
 .carousel, .display-outer {
     margin: 0 auto;
-    height: 0;
-    max-width: 0;
+    max-width: 460px;
     opacity: 0;
+    height: 0;
     overflow: hidden;
 }
 
 .carousel.visible, .display-outer.visible {
     opacity: 1;
     height: unset;
-    max-width: 460px;
     overflow: unset;
     padding: 5em 0;
 }
@@ -299,23 +298,23 @@ button:not(:disabled):hover {
     transition: all 0.3s ease-out;
 }
 
-.confirmation-button-true,
-.confirmation-button-false {
+.confirmation-true,
+.confirmation-false {
     padding: 0.5rem 1rem;
     width: 5rem;
 }
 
-.confirmation-style-true {
+.confirmation-true {
     background-color: #0a0!important;
 }
-.confirmation-style-true:hover {
+.confirmation-true:hover {
     box-shadow: 0 3px 5px 0 #0a08!important;
 }
 
-.confirmation-style-false {
+.confirmation-false {
     background-color: #a00!important;
 }
-.confirmation-style-false:hover {
+.confirmation-false:hover {
     box-shadow: 0 3px 5px 0 #a008!important;
 }
 
@@ -530,23 +529,6 @@ button:not(:disabled):hover {
     color: #fff;
 }
 
-.stroop .carousel_display_text,
-.stroop .display_text {
-    color: #f00;
-}
-
-.stroop .negation-explainer__color-name::before {
-    content: 'White';
-}
-
-.negation-explainer__color-name::before {
-    content: 'Red';
-}
-
-.stroop .is-negated {
-    color: #fff;
-}
-
 .is-negated {
     color: #f00;
 }
@@ -555,11 +537,6 @@ button:not(:disabled):hover {
     color: #eddb7e;
     font-size: 0.825rem;
     font-style: italic;
-}
-
-.analogy-conclusion-relation {
-    font-size: 14px;
-    margin: 4px 0;
 }
 
 .sign {
@@ -635,7 +612,7 @@ label.open[for="offcanvas-user"]:hover {
 
 .offcanvas {
     align-content: start;
-    background-image: radial-gradient(circle at top center, #000, #200);
+    background-image: radial-gradient(circle at top center, #000, #100);
     color: #fffff0;
     display: flex;
     height: 100%;
@@ -650,11 +627,11 @@ label.open[for="offcanvas-user"]:hover {
 .offcanvas-body {
     overflow: auto;
     padding: 1rem;
-    width: calc(100% - 2.25rem)
+    width: calc(100% - 2rem)
 }
 
 .offcanvas-side {
-    width: 2.25rem;
+    width: 2rem;
 }
 
 .offcanvas--left {
@@ -673,7 +650,7 @@ label.open[for="offcanvas-user"]:hover {
 
 .offcanvas-close {
     cursor: pointer;
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     line-height: 1;
     padding: 0.5rem;
     position: sticky;
@@ -697,7 +674,15 @@ label.open[for="offcanvas-user"]:hover {
     padding-left: 1rem;
 }
 
-.ctrl {
+.ctrl__outer {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content:space-between;
+    gap: 1.25rem;
+}
+
+.ctrl__inner {
     align-items: center;
     display: flex;
     gap: 0.5rem;
@@ -827,7 +812,7 @@ input[type="checkbox"]:checked + .switch::after {
         font-size: 20px;
     }
 
-    .carousel.visible, .display-outer.visible {
+    .carousel, .display-outer {
         max-width: 320px;
     }
 }

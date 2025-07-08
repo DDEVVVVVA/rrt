@@ -2,18 +2,14 @@
 <html>
 	<head>
 		<!-- Google tag (gtag.js) -->
-		<script async src="https://www.googletagmanager.com/gtag/js?id=G-P15P45JRCD"></script>
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-1XP3CFJN1N"></script>
 		<script>
-		window.dataLayer = window.dataLayer || [];
-		function gtag(){dataLayer.push(arguments);}
-		gtag('js', new Date());
-
-		gtag('config', 'G-P15P45JRCD');
+		  window.dataLayer = window.dataLayer || [];
+		  function gtag(){dataLayer.push(arguments);}
+		  gtag('js', new Date());
+		
+		  gtag('config', 'G-1XP3CFJN1N');
 		</script>
-		<title>Syllogimous v3</title>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, user-scalable=no">
-		<meta name="mobile-web-app-capable" content="yes">
 
 		<!-- PWA Manifest -->
 		<link rel="manifest" href="manifest.json">
@@ -32,7 +28,6 @@
 
 		<link rel="icon" type="image/png" href="favicon.png">
 		<link rel="stylesheet" href="css/codec.css">
-		<link rel="stylesheet" href="css/wcst.css">
 		<link rel="stylesheet" href="css/styles.css">
 	</head>
 	<body>
@@ -62,22 +57,8 @@
 			<div class="offcanvas offcanvas--left">
 				<div class="offcanvas-body ffmono">
 					<div style="direction: ltr;">
-
-						<div class="mb-2">
-							<div class="inline-input__outer">
-								Premises
-								<span class="inline-input__inner">
-									<input id="p-5" type="number" min="2" value="2" style="width: 5ch">qty
-								</span>
-							</div>
-							<ul class="explainer">
-								<li>Insert 3 or more premises to play Analogies</li>
-								<li>Insert 4 or more premises to play Binary questions</li>
-							</ul>
-						</div>
-
-						<div class="mb-2">
-							<div class="ctrl">
+						<div class="mb-1">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-9" type="checkbox">
 									<label class="switch" for="p-9"></label>
@@ -88,22 +69,61 @@
 								See only one word at time.
 							</p>
 						</div>
-
-						<div class="mb-2">
-							<div class="ctrl">
+						<div class="mb-1">
+							<div class="ctrl__inner">
 								<div>
-									<input hidden id="p-8" type="checkbox" checked>
+									<input hidden id="p-20" type="checkbox" checked>
+									<label class="switch" for="p-20"></label>
+								</div>
+								<span>Use Nonsense Words</span>
+							</div>
+						</div>		
+						<div class="mb-2" style="margin-left: 2rem;">
+							<div class="inline-input__outer">
+								Nonsense Word Length
+								<span class="inline-input__inner">
+									<input id="p-19" type="number" min="1" value="3" style="width: 5ch">
+								</span>
+							</div>
+						</div>
+						<div class="mb-1">
+							<div class="ctrl__inner">
+								<div>
+									<input hidden id="p-8" type="checkbox">
 									<label class="switch" for="p-8"></label>
 								</div>
-								<span>Enable Meaningful Workds</span>
+								<span>Use Meaningful Words</span>
+							</div>							
+						</div>								
+						<div class="mb-2" style="margin-left: 2rem;">
+							<div class="ctrl__outer">
+								<div class="ctrl__inner">
+									<div>
+										<input hidden id="p-22" type="checkbox" checked>
+										<label class="switch" for="p-22"></label>
+									</div>
+									<span>Nouns</span>
+								</div>
+								<div class="ctrl__inner">
+									<div>
+										<input hidden id="p-23" type="checkbox">
+										<label class="switch" for="p-23"></label>
+									</div>
+									<span>Adjectives</span>
+								</div>								
 							</div>
-							<p class="explainer">
-								Use meaningul words ("Ability" instead of "QAW").
-							</p>
 						</div>
-
 						<div class="mb-1">
-							<div class="ctrl">
+							<div class="ctrl__inner">
+								<div>
+									<input hidden id="p-21" type="checkbox">
+									<label class="switch" for="p-21"></label>
+								</div>
+								<span>Use Emoji</span>
+							</div>
+						</div>						
+						<div class="mb-1">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-11" type="checkbox">
 									<label class="switch" for="p-11"></label>
@@ -111,13 +131,13 @@
 								<span>Enable Negation</span>
 							</div>
 							<ul class="explainer">
-								<li>Invert the <span style="color: #f00;">Red</span> text</li>
-								<li><span style="color: #f00;">Is</span> = <span style="color: #fff;">Is not</span></li>
-								<li><span style="color: #f00;">All</span> = <span style="color: #fff;">No</span></li>
+								<li>Invert the <span class="is-negated">Red</span> text</li>
+								<li><span class="is-negated">Is</span> = <span style="color: #fff;">Is not</span></li>
+								<li><span class="is-negated">All</span> = <span style="color: #fff;">No</span></li>
 							</ul>
 						</div>
 						<div class="mb-2" style="margin-left: 2rem;">
-							<div class="ctrl">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-18" type="checkbox">
 									<label class="switch" for="p-18"></label>
@@ -125,22 +145,8 @@
 								<span>Remove Negation Explainer</span>
 							</div>
 						</div>
-
-						<div class="mb-2">
-							<div class="ctrl">
-								<div>
-									<input hidden id="p-22" type="checkbox">
-									<label class="switch" for="p-22"></label>
-								</div>
-								<span>Enable Stroop Mode</span>
-							</div>
-							<ul class="explainer">
-								Randomly switch colors between normal and negated texts
-							</ul>
-						</div>
-
-						<div class="mb-2">
-							<div class="ctrl">
+						<div class="mb-1">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-16" type="checkbox">
 									<label class="switch" for="p-16"></label>
@@ -151,9 +157,8 @@
 								<li>A is (C to D) of B</li>
 							</ul>
 						</div>
-
 						<div class="mb-1">
-							<div class="ctrl">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-1" type="checkbox" checked>
 									<label class="switch" for="p-1"></label>
@@ -165,17 +170,8 @@
 								<li>A is opposite to B</span>
 							</ul>
 						</div>
-						<div class="mb-2" style="margin-left: 2rem;">
-							<div class="inline-input__outer">
-								Timer
-								<span class="inline-input__inner">
-									<input id="p-29" type="number" min="5" value="30" style="width: 6ch">sec
-								</span>
-							</div>
-						</div>
-
 						<div class="mb-1">
-							<div class="ctrl">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-2" type="checkbox" checked>
 									<label class="switch" for="p-2"></label>
@@ -187,17 +183,8 @@
 								<li>A is greater than B</span>
 							</ul>
 						</div>
-						<div class="mb-2" style="margin-left: 2rem;">
-							<div class="inline-input__outer">
-								Timer
-								<span class="inline-input__inner">
-									<input id="p-30" type="number" min="5" value="30" style="width: 6ch">sec
-								</span>
-							</div>
-						</div>
-
 						<div class="mb-1">
-							<div class="ctrl">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-10" type="checkbox" checked>
 									<label class="switch" for="p-10"></label>
@@ -209,17 +196,8 @@
 								<li>A is after B</span>
 							</ul>
 						</div>
-						<div class="mb-2" style="margin-left: 2rem;">
-							<div class="inline-input__outer">
-								Timer
-								<span class="inline-input__inner">
-									<input id="p-31" type="number" min="5" value="30" style="width: 6ch">sec
-								</span>
-							</div>
-						</div>
-
 						<div class="mb-1">
-							<div class="ctrl">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-3" type="checkbox" checked>
 									<label class="switch" for="p-3"></label>
@@ -231,17 +209,29 @@
 								<li>Some A is B</span>
 							</ul>
 						</div>
+						<div class="mb-1">
+							<div class="ctrl__inner">
+								<div>
+									<input hidden id="p-4" type="checkbox">
+									<label class="switch" for="p-4"></label>
+								</div>
+								<span>Enable Analogy</span>
+							</div>
+							<ul class="explainer">
+								<li>A is to B as B is to C</li>
+							</ul>
+						</div>
 						<div class="mb-2" style="margin-left: 2rem;">
-							<div class="inline-input__outer">
-								Timer
-								<span class="inline-input__inner">
-									<input id="p-32" type="number" min="5" value="30" style="width: 6ch">sec
-								</span>
+							<div class="ctrl__inner">
+								<div>
+									<input hidden id="p-14" type="checkbox">
+									<label class="switch" for="p-14"></label>
+								</div>
+								<span>Only Analogy</span>
 							</div>
 						</div>
-
 						<div class="mb-1">
-							<div class="ctrl">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-6" type="checkbox">
 									<label class="switch" for="p-6"></label>
@@ -253,17 +243,8 @@
 								<li>B is at Ovest of C</li>
 							</ul>
 						</div>
-						<div class="mb-2" style="margin-left: 2rem;">
-							<div class="inline-input__outer">
-								Timer
-								<span class="inline-input__inner">
-									<input id="p-34" type="number" min="5" value="30" style="width: 6ch">sec
-								</span>
-							</div>
-						</div>
-
 						<div class="mb-1">
-							<div class="ctrl">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-12" type="checkbox">
 									<label class="switch" for="p-12"></label>
@@ -275,17 +256,8 @@
 								<li>B is at Below and South-East of C</li>
 							</ul>
 						</div>
-						<div class="mb-2" style="margin-left: 2rem;">
-							<div class="inline-input__outer">
-								Timer
-								<span class="inline-input__inner">
-									<input id="p-35" type="number" min="5" value="30" style="width: 6ch">sec
-								</span>
-							</div>
-						</div>
-
 						<div class="mb-1">
-							<div class="ctrl">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-13" type="checkbox">
 									<label class="switch" for="p-13"></label>
@@ -293,51 +265,12 @@
 								<span>Enable Space-Time</span>
 							</div>
 							<ul class="explainer">
-								<li>A was Below and South of Town of B</li>
-								<li>B will be Above and North-West of C</li>
+								<li>A is at Before, Below and South of Town of B</li>
+								<li>B is at After, Above and North-West of C</li>
 							</ul>
 						</div>
-						<div class="mb-2" style="margin-left: 2rem;">
-							<div class="inline-input__outer">
-								Timer
-								<span class="inline-input__inner">
-									<input id="p-36" type="number" min="5" value="30" style="width: 6ch">sec
-								</span>
-							</div>
-						</div>
-
 						<div class="mb-1">
-							<div class="ctrl">
-								<div>
-									<input hidden id="p-4" type="checkbox">
-									<label class="switch" for="p-4"></label>
-								</div>
-								<span>Enable Analogy</span>
-							</div>
-							<ul class="explainer">
-								<li>A is to B as B is to C</li>
-							</ul>
-						</div>
-						<div class="mb-1" style="margin-left: 2rem;">
-							<div class="ctrl">
-								<div>
-									<input hidden id="p-14" type="checkbox">
-									<label class="switch" for="p-14"></label>
-								</div>
-								<span>Only Analogy</span>
-							</div>
-						</div>
-						<div class="mb-2" style="margin-left: 2rem;">
-							<div class="inline-input__outer">
-								Timer
-								<span class="inline-input__inner">
-									<input id="p-33" type="number" min="5" value="30" style="width: 6ch">sec
-								</span>
-							</div>
-						</div>
-
-						<div class="mb-1">
-							<div class="ctrl">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-7" type="checkbox">
 									<label class="switch" for="p-7"></label>
@@ -351,7 +284,7 @@
 							</ul>
 						</div>
 						<div class="mb-1" style="margin-left: 2rem;">
-							<div class="ctrl">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="p-15" type="checkbox">
 									<label class="switch" for="p-15"></label>
@@ -359,121 +292,29 @@
 								<span>Only Binary</span>
 							</div>
 						</div>
-						<div class="mb-1" style="margin-left: 2rem;">
-							<div class="ctrl">
-								<div>
-									<input hidden id="p-23" type="checkbox" checked>
-									<label class="switch" for="p-23"></label>
-								</div>
-								<span>Enable AND</span>
-							</div>
-						</div>
-						<div class="mb-1" style="margin-left: 2rem;">
-							<div class="ctrl">
-								<div>
-									<input hidden id="p-24" type="checkbox" checked>
-									<label class="switch" for="p-24"></label>
-								</div>
-								<span>Enable NAND</span>
-							</div>
-						</div>
-						<div class="mb-1" style="margin-left: 2rem;">
-							<div class="ctrl">
-								<div>
-									<input hidden id="p-25" type="checkbox" checked>
-									<label class="switch" for="p-25"></label>
-								</div>
-								<span>Enable OR</span>
-							</div>
-						</div>
-						<div class="mb-1" style="margin-left: 2rem;">
-							<div class="ctrl">
-								<div>
-									<input hidden id="p-26" type="checkbox" checked>
-									<label class="switch" for="p-26"></label>
-								</div>
-								<span>Enable NOR</span>
-							</div>
-						</div>
-						<div class="mb-1" style="margin-left: 2rem;">
-							<div class="ctrl">
-								<div>
-									<input hidden id="p-27" type="checkbox" checked>
-									<label class="switch" for="p-27"></label>
-								</div>
-								<span>Enable XOR</span>
-							</div>
-						</div>
-						<div class="mb-1" style="margin-left: 2rem;">
-							<div class="ctrl">
-								<div>
-									<input hidden id="p-28" type="checkbox" checked>
-									<label class="switch" for="p-28"></label>
-								</div>
-								<span>Enable XNOR</span>
-							</div>
-						</div>
-						<div class="mb-1" style="margin-left: 2rem;">
-							<div class="inline-input__outer">
-								Depth
-								<span class="inline-input__inner">
-									<input id="p-17" type="number" min="0" value="1" max="8" style="width: 5ch">lvl
-								</span>
-							</div>
-							<ul class="explainer">
-								<li>Recursion depth for Nested Binary</li>
-							</ul>
-						</div>
 						<div class="mb-2" style="margin-left: 2rem;">
 							<div class="inline-input__outer">
-								Timer
+								Max Depth
 								<span class="inline-input__inner">
-									<input id="p-37" type="number" min="5" value="30" style="width: 6ch">sec
-								</span>
-							</div>
-						</div>
-
-						<div class="mb-1">
-							<div class="ctrl">
-								<div>
-									<input hidden id="p-19" type="checkbox">
-									<label class="switch" for="p-19"></label>
-								</div>
-								<span>Enable Sorting Test</span>
-							</div>
-							<ul class="explainer">
-								<li>Only for desktop</li>
-							</ul>
-						</div>
-						<div class="mb-1" style="margin-left: 2rem;">
-							<div class="ctrl">
-								<div>
-									<input hidden id="p-20" type="checkbox">
-									<label class="switch" for="p-20"></label>
-								</div>
-								<span>Only Sorting Test</span>
-							</div>
-						</div>
-						<div class="mb-1" style="margin-left: 2rem;">
-							<div class="inline-input__outer">
-								Min Width
-								<span class="inline-input__inner">
-									<input id="p-21" type="number" min="2" value="2" max="4" style="width: 5ch">attr
+									<input id="p-17" type="number" min="1" value="1" max="8" style="width: 5ch">lvl
 								</span>
 							</div>
 							<ul class="explainer">
-								<li>Minimum number of attributes</li>
+								<li>Maximum recursion depth for Nested Binary</li>
 							</ul>
 						</div>
-						<div class="mb-2" style="margin-left: 2rem;">
+						<div class="mb-2">
 							<div class="inline-input__outer">
-								Timer
+								Premises
 								<span class="inline-input__inner">
-									<input id="p-38" type="number" min="5" value="30" style="width: 6ch">sec
+									<input id="p-5" type="number" min="2" value="2" style="width: 5ch">qty
 								</span>
 							</div>
-						</div>
-
+							<ul class="explainer">
+								<li>Insert 3 or more premises to play Analogies</li>
+								<li>Insert 4 or more premises to play Binary questions</li>
+							</ul>
+						</div>												
 						<div>
 							<button onclick="resetApp()">Reset App</button>
 							<ul class="explainer">
@@ -724,7 +565,7 @@
 							</div>
 						</div>
 						<div>
-							<div class="ctrl">
+							<div class="ctrl__inner">
 								<div>
 									<input hidden id="" type="checkbox">
 									<label class="switch" for=""></label>
@@ -767,17 +608,17 @@
 			<div class="timer-wrap">
 				<div class="timer">
 					<div class="timer__bar" style="width: 100%"></div>
-					<div
-						class="inline-input__outer"
-						style="position: absolute; top: 0; transform: translate(12px, 12px);"
-					>
-						<span>Enable Timer</span>
+					<div class="inline-input__outer" style="position: absolute; top: 0; transform: translate(12px, 12px);">
+						Timer
+						<span class="inline-input__inner">
+							<input id="timer-input" type="number" min="1" value="30" style="width: 5ch">sec
+						</span>
 						<input id="timer-toggle" type="checkbox">
 					</div>
 				</div>
 			</div>
 
-			<div class="question-space">
+			<div>
 				<div class="carousel">
 					<div class="carousel_display">
 						<div class="carousel_display_label-wrapper">
@@ -799,14 +640,8 @@
 						<button id="carousel-next">Next</button>
 					</div>
 					<div class="confirmation-buttons" style="opacity: 0">
-						<button
-							class="confirmation-button-true confirmation-style-true"
-							onclick="checkIfTrue()"
-						>TRUE</button>
-						<button
-							class="confirmation-button-false confirmation-style-false"
-							onclick="checkIfFalse()"
-						>FALSE</button>
+						<button class="confirmation-true" onclick="checkIfTrue()">TRUE</button>
+						<button class="confirmation-false" onclick="checkIfFalse()">FALSE</button>
 					</div>
 				</div>
 
@@ -825,30 +660,8 @@
 						<div class="display_text"></div>
 					</div>
 					<div class="confirmation-buttons">
-						<button
-							class="confirmation-button-true confirmation-style-true"
-							onclick="checkIfTrue()"
-						>TRUE</button>
-						<button
-							class="confirmation-button-false confirmation-style-false"
-							onclick="checkIfFalse()"
-						>FALSE</button>
-					</div>
-				</div>
-
-				<div class="wcst-outer">
-					<div class="wcst-inner">
-						<div class="bracket-lip-top-left"></div>
-						<div class="border-left"></div>
-						<div class="bracket-lip-bottom-left"></div>
-						<div class="bracket-lip-top-right"></div>
-						<div class="border-right"></div>
-						<div class="bracket-lip-bottom-right"></div>
-						<h2>
-							<span class="wcst-type">Sorting Test</span>
-							<span class="wcst-level"></span>
-						</h2>
-						<div class="wcst-list"></div>
+						<button class="confirmation-true" onclick="checkIfTrue()">TRUE</button>
+						<button class="confirmation-false" onclick="checkIfFalse()">FALSE</button>
 					</div>
 				</div>
 			</div>
@@ -871,7 +684,6 @@
 		<script src="js/codec.js"></script>
 		<script src="js/constants.js"></script>
 		<script src="js/generators.js"></script>
-		<script src="js/wcst.js"></script>
 		<script src="js/index.js"></script>
 
 		<!-- Register the Service Worker -->

@@ -5,8 +5,6 @@ if ('serviceWorker' in navigator)
             if (registrations.length) for (let r of registrations) r.unregister();
         });
 
-const questionSpace = document.querySelector('.question-space');
-
 const feedbackWrong = document.querySelector(".feedback--wrong");
 const feedbackMissed = document.querySelector(".feedback--missed");
 const feedbackRight = document.querySelector(".feedback--right");
@@ -14,13 +12,16 @@ const feedbackRight = document.querySelector(".feedback--right");
 const correctlyAnsweredEl = document.querySelector(".correctly-answered");
 const nextLevelEl = document.querySelector(".next-level");
 
+const timerInput = document.querySelector("#timer-input");
 const timerToggle = document.querySelector("#timer-toggle");
 const timerBar = document.querySelector(".timer__bar");
 let timerToggled = false;
-let timerTime = 30;
-let timerCount = 30;
+let timerTime = 10;
+let timerCount = 10;
 let timerInstance;
 let timerRunning = false;
+
+let quota
 
 const historyList = document.getElementById("history-list");
 
@@ -35,12 +36,10 @@ const carouselNextButton = carousel.querySelector("#carousel-next");
 
 const display = document.querySelector(".display-outer");
 const displayLabelType = display.querySelector(".display_label_type");
-const displayLabelLevel = display.querySelector(".display_label_level");
+const displayLabelLevel = display.querySelector(".display_label_level");;
 const displayText = display.querySelector(".display_text");;
 
 const confirmationButtons = carousel.querySelector(".confirmation-buttons");
-
-let symbols;
 
 const keySettingMapInverse = Object.entries(keySettingMap)
     .reduce((a, b) => (a[b[1]] = b[0], a), {});
@@ -80,14 +79,6 @@ for (const key in keySettingMap) {
     }
 }
 
-// Events
-timerToggle.addEventListener("click", evt => {
-    timerTime = savedata[question.label + "Timer"];
-    timerToggled = evt.target.checked;
-    if (timerToggled) startCountDown();
-    else stopCountDown();
-});
-
 // Functions
 function save() {
     localStorage.setItem(
@@ -120,6 +111,9 @@ function load() {
         else if (input.type === "number")
             input.value = value;
     }
+
+    timerInput.value = savedData.timer;
+    timerTime = timerInput.value;
 
     renderHQL();
 }
@@ -180,60 +174,12 @@ function carouselNext() {
     carouselDisplayText.innerHTML = question.premises[carouselIndex];
 }
 
-function switchButtonPositions() {
-    const parents = document.querySelectorAll(".confirmation-buttons");
-    for (let p of parents) {
+function switchButtons() {
+    const parent = document.querySelectorAll(".confirmation-buttons");
+    for (let p of parent) {
         const firstChild = p.firstElementChild;
         p.removeChild(firstChild);
         p.appendChild(firstChild);
-    }
-}
-
-function switchButtonColors() {
-
-    const parents = document.querySelectorAll(".confirmation-buttons");
-
-    for (let p of parents) {
-
-        p.querySelector('.confirmation-button-true')
-         .classList
-         .toggle('confirmation-style-false');
-
-        p.querySelector('.confirmation-button-true')
-         .classList
-         .toggle('confirmation-style-true');
-
-        p.querySelector('.confirmation-button-false')
-         .classList
-         .toggle('confirmation-style-true');
-
-        p.querySelector('.confirmation-button-false')
-         .classList
-         .toggle('confirmation-style-false');
-    }
-}
-
-function resetButtonColors() {
-
-    const parents = document.querySelectorAll(".confirmation-buttons");
-
-    for (let p of parents) {
-
-        p.querySelector('.confirmation-button-true')
-        .classList
-        .remove('confirmation-style-false');
-
-        p.querySelector('.confirmation-button-true')
-        .classList
-        .add('confirmation-style-true');
-
-        p.querySelector('.confirmation-button-false')
-        .classList
-        .remove('confirmation-style-true');
-
-        p.querySelector('.confirmation-button-false')
-        .classList
-        .add('confirmation-style-false');
     }
 }
 
@@ -272,17 +218,8 @@ function timeElapsed() {
 
 function init() {
 
-    if (savedata.enableCarouselMode) {
-        carousel.classList.add("visible");
-        display.classList.remove("visible");
-    } else {
-        display.classList.add("visible");
-        carousel.classList.remove("visible");
-    }
-    if (savedata.enableMeaningfulWords)
-        symbols = [...nouns];
-    else
-        symbols = [...strings];
+    stopCountDown();
+    if (timerToggled) startCountDown();
 
     correctlyAnsweredEl.innerText = savedata.score;
     nextLevelEl.innerText = savedata.questions.length;
@@ -307,42 +244,47 @@ function init() {
     ].reduce((a, c) => a + +c, 0) > 1;
 
     const choices = [];
+    if (savedata.enableCarouselMode) {
+        carousel.classList.add("visible");
+        display.classList.remove("visible");
+    } else {
+        display.classList.add("visible");
+        carousel.classList.remove("visible");
+    }
+
+    quota = savedata.premises
+    quota = Math.min(quota, createQuota())
+
     if (savedata.enableDistinction && !(savedata.onlyAnalogy || savedata.onlyBinary))
-        choices.push(createSameOpposite(savedata.premises));
+        choices.push(createSameOpposite(quota));
     if (savedata.enableComparison && !(savedata.onlyAnalogy || savedata.onlyBinary))
-        choices.push(createMoreLess(savedata.premises));
+        choices.push(createMoreLess(quota));
     if (savedata.enableTemporal && !(savedata.onlyAnalogy || savedata.onlyBinary))
-        choices.push(createBeforeAfter(savedata.premises));
+        choices.push(createBeforeAfter(quota));
     if (savedata.enableSyllogism && !(savedata.onlyAnalogy || savedata.onlyBinary))
-        choices.push(createSyllogism(savedata.premises));
+        choices.push(createSyllogism(quota));
     if (savedata.enableDirection && !(savedata.onlyAnalogy || savedata.onlyBinary))
-        choices.push(createDirectionQuestion(savedata.premises));
+        choices.push(createDirectionQuestion(quota));
     if (savedata.enableDirection3D && !(savedata.onlyAnalogy || savedata.onlyBinary))
-        choices.push(createDirectionQuestion3D(savedata.premises));
+        choices.push(createDirectionQuestion3D(quota));
     if (savedata.enableDirection4D && !(savedata.onlyAnalogy || savedata.onlyBinary))
-        choices.push(createDirectionQuestion4D(savedata.premises));
+        choices.push(createDirectionQuestion4D(quota));
     if (
-        savedata.premises > 2
+        quota > 2
      && savedata.enableAnalogy
      && !savedata.onlyBinary
      && analogyEnable
     ) {
-        choices.push(createSameDifferent(savedata.premises));
+        choices.push(createSameDifferent(quota));
     }
     if (
-        savedata.premises > 3
+        quota > 3
      && savedata.enableBinary
      && !savedata.onlyAnalogy
      && binaryEnable
     ) {
-
-        // binary and nestedBinary are falsy when the user disable all operands
-        const binary = createBinaryQuestion(savedata.premises);
-        const nestedBinary = createNestedBinaryQuestion(savedata.premises);
-        if (savedata.nestedBinaryDepth < 1 && binary)
-            choices.push(binary);
-        else if (nestedBinary)
-            choices.push(nestedBinary);
+        choices.push(createBinaryQuestion(quota));
+        choices.push(createNestedBinaryQuestion(quota));
     }
 
     if (savedata.enableAnalogy && !analogyEnable) {
@@ -350,93 +292,44 @@ function init() {
         if (savedata.onlyAnalogy)
             return;
     }
-    if (savedata.enableAnalogy && analogyEnable && savedata.premises < 3) {
+    if (savedata.enableAnalogy && analogyEnable && quota < 3) {
         alert('ANALOGY needs at least 3 premises.');
         if (savedata.onlyAnalogy)
             return;
     }
 
-    if (
-        savedata.enableBinary
-     && savedata.onlyBinary
-     && !savedata.enableAnd
-     && !savedata.enableNand
-     && !savedata.enableOr
-     && !savedata.enableNor
-     && !savedata.enableXor
-     && !savedata.enableXnor
-    )
-        return alert("BINARY needs at least 1 operand.");
 
     if (savedata.enableBinary && !binaryEnable) {
         alert('BINARY needs at least 2 other question class (ANALOGY do not count).');
         if (savedata.onlyBinary)
             return;
     }
-    if (savedata.enableBinary && binaryEnable && savedata.premises < 4) {
+    if (savedata.enableBinary && binaryEnable && quota < 4) {
         alert('BINARY needs at least 4 premises.');
         if (savedata.onlyBinary)
             return;
     }
 
-    let isStrooped = false;
-    questionSpace.classList.remove('stroop');
-    if (savedata.enableNegation && savedata.enableStroopEffect && coinFlip()) {
-
-        isStrooped = true;
-        questionSpace.classList.add('stroop');
-    }
-
-    if (savedata.enableStroopEffect)
-        for (let i = Math.floor(Math.random() * 10); i > 0; i--)
-            switchButtonColors();
-    else
-        resetButtonColors();
-
     if (choices.length === 0)
         return;
 
     question = choices[Math.floor(Math.random() * choices.length)];
-    timerTime = savedata[question.label + 'Timer'];
-
-    stopCountDown();
-    if (timerToggled) 
-        startCountDown();
-
-    question.isStroop = isStrooped;
 
     if (!savedata.removeNegationExplainer && /is-negated/.test(JSON.stringify(question)))
-        question.premises.unshift('<span class="negation-explainer">Invert the <span class="negation-explainer__color-name is-negated"></span> text</span>');
+        question.premises.unshift('<span class="negation-explainer">Invert the <span class="is-negated">Red</span> text</span>');
 
-    // Choose with 1/1000 chance an easter egg
+    // Choose with 1/1000 chance a paradox
     if (Math.random() > 0.999)
         question = paradoxes[Math.floor(Math.random() * paradoxes.length)];
-    if (Math.random() > 0.999)
+
+    // Choose with 1/100 chance a logic puzzle
+    if (Math.random() > 0.99)
         question = logicPuzzles[Math.floor(Math.random() * logicPuzzles.length)];
 
-    // Switch confirmation button positions a random amount of times
-    for (let i = Math.floor(Math.random() * 10); i > 0; i--)
-        switchButtonPositions();
-
-    // Start of WCST
-    wcst.classList.remove('visible');
-    if (
-        window.innerWidth > 992
-     && savedata.enableSortingTest
-     && (
-            savedata.onlySortingTest
-         || Math.random() > 1 - (1 / (1 + choices.length))
-        )
-    ) {
-        timerTime = savedata.sortingTestTimer;
-        const length = savedata.premises + 2;
-        carousel.classList.remove('visible');
-        display.classList.remove('visible');
-        wcstLevel.innerText = length + ' items';
-        wcst.classList.add('visible');
-        generateCards(length, savedata.minCardWidth, init);
+    // Switch confirmation buttons a random amount of times
+    for (let i = Math.floor(Math.random()*10); i > 0; i--) {
+        switchButtons();
     }
-    // End of WCST
 
     carouselInit();
     displayInit();
@@ -575,6 +468,22 @@ function createHQLI(question, answerUser) {
     return parent.firstElementChild;
 }
 
+// Events
+timerInput.addEventListener("input", evt => {
+    const el = evt.target;
+    timerTime = el.value;
+    timerCount = el.value;
+    el.style.width = (el.value.length + 3) + 'ch';
+    savedata.timer = el.value;
+    save();
+});
+
+timerToggle.addEventListener("click", evt => {
+    timerToggled = evt.target.checked;
+    if (timerToggled) startCountDown();
+    else stopCountDown();
+});
+
 load();
-switchButtonPositions();
+switchButtons();
 init();
